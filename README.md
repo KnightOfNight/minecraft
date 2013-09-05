@@ -1,4 +1,4 @@
 minecraft
 =========
 
-Minecraft server utilities
+Minecraft server utilities.
