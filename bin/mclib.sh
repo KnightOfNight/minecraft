@@ -75,7 +75,7 @@ server_status () {
 
 	message "current status..."
 
-	tail -$lines $MC_SERVER_PATH/server.log
+	tail -$lines $MC_SERVER_PATH/logs/latest.log
 
 }
 
@@ -126,7 +126,7 @@ server_start () {
 
 	typeset -i ctr; let ctr=$max_ctr
 	while true; do
-		if tail -5 server.log | grep -q Done; then
+		if tail -5 logs/latest.log | grep -q Done; then
 			break
 		fi
 
