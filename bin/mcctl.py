@@ -41,6 +41,10 @@ class Server:
 	def logtail(self, tail_lines=-25):
 		log = "%s/%s/logs/latest.log" % (Defaults.dir_servers, self.name)
 
+		if not os.path.exists(log):
+			logging.error("server log file '%s' does not exist" % (log))
+			sys.exit(1)
+
 		with open(log) as f:
 			lines = f.readlines()
 			lines = [ line.strip() for line in lines ]
@@ -314,6 +318,7 @@ def action_restart_server(args):
 	s.start(args.memory)
 
 
+
 def action_stop_server(args):
 	logging.debug("stop a server")
 
@@ -360,7 +365,7 @@ def action_backup_server(args):
 
 
 # parse arguments and call the requested action function
-parser = argparse.ArgumentParser(description="Manage Minecraft Servers")
+parser = argparse.ArgumentParser(description="Minecraft Server Control")
 
 parser.add_argument("--version", action="version", version="mcctl v1.0.0")
 parser.add_argument("-d", "--debug", dest="debug", action="store_true", help="turn on debugging output")
