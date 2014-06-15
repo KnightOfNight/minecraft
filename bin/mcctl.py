@@ -179,8 +179,9 @@ class Server:
 		server_dir = "%s/%s" % (Defaults.dir_servers, self.name)
 		snapshot_dir = "%s/%s" % (Defaults.dir_snapshots, self.name)
 
-		logging.debug("removing old snapshot")
-		shutil.rmtree(snapshot_dir)
+		if os.path.exists(snapshot_dir):
+			logging.debug("removing old snapshot")
+			shutil.rmtree(snapshot_dir)
 
 		logging.debug("copying files for new snapshot")
 		shutil.copytree(server_dir, snapshot_dir)
