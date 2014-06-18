@@ -366,9 +366,9 @@ def action_backup_server(args):
 
 
 # parse arguments and call the requested action function
-parser = argparse.ArgumentParser(description="Minecraft Server Control")
+parser = argparse.ArgumentParser(description="Minecraft Server Control", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("--version", action="version", version="mcctl v1.0.0")
+parser.add_argument("-v", "--version", action="version", version="mcctl v1.0.1")
 parser.add_argument("-d", "--debug", dest="debug", action="store_true", help="turn on debugging output")
 
 subparser = parser.add_subparsers(title="actions")
@@ -376,14 +376,14 @@ subparser = parser.add_subparsers(title="actions")
 parser_list = subparser.add_parser("list", help="list running servers")
 parser_list.set_defaults(func=action_list_servers)
 
-parser_start = subparser.add_parser("start", help="start a server")
+parser_start = subparser.add_parser("start", help="start a server", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_start.add_argument("server", metavar="SERVER", help="name of the server")
-parser_start.add_argument("--memory", metavar="MB", help="allocate this much memory", default=512, type=int)
+parser_start.add_argument("-m", "--memory", metavar="MB", help="allocate this much memory to the server", default=512, type=int)
 parser_start.set_defaults(func=action_start_server)
 
-parser_restart = subparser.add_parser("restart", help="restart a server")
+parser_restart = subparser.add_parser("restart", help="restart a server", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_restart.add_argument("server", metavar="SERVER", help="name of the server")
-parser_restart.add_argument("--memory", metavar="MB", help="allocate this much memory", default=512, type=int)
+parser_restart.add_argument("-m", "--memory", metavar="MB", help="allocate this much memory to the server", default=512, type=int)
 parser_restart.set_defaults(func=action_restart_server)
 
 parser_stop = subparser.add_parser("stop", help="stop a server")
