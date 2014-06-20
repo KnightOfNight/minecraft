@@ -22,6 +22,8 @@ class Defaults:
 
 	dir_snapshots = "/usr/local/games/minecraft/snapshot"
 
+	log_file = "logs/latest.log"
+
 	game_jar = "minecraft_server.jar"
 
 
@@ -29,6 +31,8 @@ class Defaults:
 class Server:
 	def __init__(self, name):
 		self.name = name
+		self.server_dir = "%s/%s" % (Defaults.dir_servers, self.name)
+		self.screen_name = "%s:%s" % (Defaults.screen_prefix, self.name)
 
 	def is_started(self):
 		servers = server_screen_sessions()
@@ -38,18 +42,27 @@ class Server:
 
 		return False
 
-	def logtail(self, tail_lines=-25):
-		log = "%s/%s/logs/latest.log" % (Defaults.dir_servers, self.name)
+	def logtail(self, log_lines = -25, log_wait_timeout = 5):
+		log_file = "%s/%s" % (self.server_dir, Defaults.log_file)
 
-		if not os.path.exists(log):
-			logging.error("server log file '%s' does not exist" % (log))
-			sys.exit(1)
+		checks = 0
+		while True:
+			checks += 1
 
-		with open(log) as f:
+			if checks == log_wait_timeout:
+				logging.error("server log file '%s' does not exist" % (log_file))
+				sys.exit(1)
+
+			elif os.path.exists(log_file):
+				break
+
+			time.sleep(1)
+
+		with open(log_file) as f:
 			lines = f.readlines()
 			lines = [ line.strip() for line in lines ]
 			tail = []
-			for line in lines[tail_lines:]:
+			for line in lines[log_lines:]:
 				tail.append(line)
 			return(tail)
 
@@ -65,26 +78,24 @@ class Server:
 
 		logging.debug("sending command '%s' to server '%s'" % (command, self.name))
 
-		system("/usr/bin/screen -p 0 -S '%s:%s' -X eval 'stuff \"%s\"\015'" % (Defaults.screen_prefix, self.name, command))
+		system("/usr/bin/screen -p 0 -S '%s' -X eval 'stuff \"%s\"\015'" % (self.screen_name, command))
 
 	def save(self):
 		logging.info("saving server '%s'" % (self.name))
 		self.command("save-all")
 
-	def start(self, memory):
+	def start(self, memory = 512, log_wait_timeout = 5):
 		if self.is_started():
 			logging.error("cannot start server '%s', it is already started" % (self.name))
 			sys.exit(1)
 
 		logging.info("starting server '%s'" % self.name)
 
-		screen_name = "%s:%s" % (Defaults.screen_prefix, self.name)
 		jar_file = "%s:%s" % (self.name, Defaults.game_jar)
-		server_dir = "%s/%s" % (Defaults.dir_servers, self.name)
 
-		cmd = "/usr/bin/screen -S %s -d -m /usr/bin/java -Xms%sM -Xmx%sM -jar %s nogui" % (screen_name, memory, memory, jar_file)
+		cmd = "/usr/bin/screen -S %s -d -m /usr/bin/java -Xms%sM -Xmx%sM -jar %s nogui" % (self.screen_name, memory, memory, jar_file)
 
-		os.chdir(server_dir)
+		os.chdir(self.server_dir)
 
 		shutil.copy(Defaults.game_jar, jar_file)
 
@@ -97,13 +108,11 @@ class Server:
 		while True:
 			checks += 1
 
-			if checks > max_checks:
+			if checks == max_checks:
 				logging.error("timed out %ds waiting for server '%s' to start" % (max_checks, self.name))
 				sys.exit(1)
 
-			time.sleep(1)
-
-			for line in self.logtail(-5):
+			for line in self.logtail(log_lines = -5, log_wait_timeout = log_wait_timeout):
 				match = re.search("Done", line)
 
 				if match:
@@ -112,6 +121,8 @@ class Server:
 
 			if started:
 				break
+
+			time.sleep(1)
 
 		logging.info("server '%s' started" % self.name)
 
@@ -135,34 +146,34 @@ class Server:
 		while True:
 			checks += 1
 
-			if checks > max_checks:
+			if checks == max_checks:
 				logging.error("timed out %ds waiting for server '%s' Java process to stop" % (max_checks, self.name))
 				sys.exit(1)
 
-			time.sleep(1)
-
 			if not java_process_info(self.name):
 				break
+
+			time.sleep(1)
 
 		checks = 0
 		while True:
 			checks += 1
 
-			if checks > max_checks:
+			if checks == max_checks:
 				logging.error("timed out %ds waiting for server '%s' screen session to stop" % (max_checks, self.name))
 				sys.exit(1)
 
-			time.sleep(1)
-
 			if not self.name in server_screen_sessions():
 				break
+
+			time.sleep(1)
 
 		logging.info("server '%s' stopped" % self.name)
 
 	def snapshot(self):
 		logging.info("taking snapshot of server '%s'", self.name)
 
-		lock = "%s/%s/.snapshot" % (Defaults.dir_servers, self.name)
+		lock = "%s/.snapshot" % (self.server_dir)
 
 		if not lockfile(lock):
 			logging.error("cannot snapshot server '%s', a snapshot is already in progress" % (self.name))
@@ -176,7 +187,6 @@ class Server:
 			logging.debug("waiting 15s for filesystem to sync")
 			time.sleep(15)
 
-		server_dir = "%s/%s" % (Defaults.dir_servers, self.name)
 		snapshot_dir = "%s/%s" % (Defaults.dir_snapshots, self.name)
 
 		if os.path.exists(snapshot_dir):
@@ -184,15 +194,15 @@ class Server:
 			shutil.rmtree(snapshot_dir)
 
 		logging.debug("copying files for new snapshot")
-		shutil.copytree(server_dir, snapshot_dir)
+		shutil.copytree(self.server_dir, snapshot_dir)
 
 		logging.debug("comparing snapshot files to original server files")
 		server_files = []
-		for path, dirs, files in os.walk(server_dir):
+		for path, dirs, files in os.walk(self.server_dir):
 			for file in files:
 				server_files.append(os.path.join(path, file))
-		server_files = [ str.replace(file, server_dir + "/", "") for file in server_files ]
-		cmp = filecmp.cmpfiles(server_dir, snapshot_dir, server_files)
+		server_files = [ str.replace(file, self.server_dir + "/", "") for file in server_files ]
+		cmp = filecmp.cmpfiles(self.server_dir, snapshot_dir, server_files)
 
 		if cmp[1] or cmp[2]:
 			logging.error("snapshot of server '%s' failed, differences found in one or more files" % (self.name))
@@ -222,6 +232,27 @@ class Server:
 		system(cmd)
 
 		logging.info("backup of server '%s' complete" % (self.name))
+
+	def setup(self, memory, source_jar):
+		if os.path.exists(self.server_dir):
+			logging.error("server '%s' has already been setup" % (self.name))
+			sys.exit(1)
+
+		if not os.path.exists(source_jar):
+			logging.error("jar file '%s' not found" % (source_jar))
+			sys.exit(1)
+
+		logging.info("setting up new server '%s'" % (self.name))
+
+		logging.debug("creating directory '%s'" % (self.server_dir))
+		os.mkdir(self.server_dir)
+
+		new_jar = "%s/%s" % (self.server_dir, Defaults.game_jar)
+
+		logging.debug("copying jar file '%s' to '%s'" % (source_jar, new_jar))
+		shutil.copy(source_jar, new_jar)
+
+		self.start(memory = memory, log_wait_timeout = 30)
 
 
 
@@ -273,7 +304,7 @@ def java_process_info(server):
 	lines = [ line.strip() for line in lines ]
 	info = {}
 	for line in lines:
-		match = re.match("^([0-9]+) +([0-9]+) +/usr/bin/java -Xms[0-9]+M -Xmx([0-9]+)M -jar {0}:{1} nogui$".format(server, Defaults.game_jar), line)
+		match = re.match("^([0-9]+) +([0-9]+) +/usr/bin/java -Xms[0-9]+M -Xmx([0-9]+)M -jar %s:%s nogui$" % (server, Defaults.game_jar), line)
 
 		if match:
 			info["pid"] = match.group(1)
@@ -306,7 +337,7 @@ def action_start_server(args):
 
 	server = args.server
 	s = Server(server)
-	s.start(args.memory)
+	s.start(memory = args.memory)
 
 
 
@@ -365,6 +396,15 @@ def action_backup_server(args):
 
 
 
+def action_setup_server(args):
+	logging.debug("setup a server")
+
+	server = args.server
+	s = Server(server)
+	s.setup(source_jar = args.jar, memory = args.memory)
+
+
+
 # parse arguments and call the requested action function
 parser = argparse.ArgumentParser(description="Minecraft Server Control", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -406,6 +446,13 @@ parser_snapshot.set_defaults(func=action_snapshot_server)
 parser_backup = subparser.add_parser("backup", help="backup a server")
 parser_backup.add_argument("server", metavar="SERVER", help="name of the server")
 parser_backup.set_defaults(func=action_backup_server)
+
+parser_setup = subparser.add_parser("setup", help="setup and start a new server")
+parser_setup.add_argument("server", metavar="SERVER", help="name of the server")
+parser_setup.add_argument("-j", "--jar", metavar="JAR", help="jar file to use for the server", required=True)
+parser_setup.add_argument("-m", "--memory", metavar="MB", help="allocate this much memory to the server", default=512, type=int)
+parser_setup.set_defaults(func=action_setup_server)
+
 
 args = parser.parse_args()
 
