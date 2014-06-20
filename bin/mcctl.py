@@ -234,6 +234,7 @@ class Server:
 		logging.info("backup of server '%s' complete" % (self.name))
 
 	def setup(self, memory, source_jar):
+
 		if os.path.exists(self.server_dir):
 			logging.error("server '%s' has already been setup" % (self.name))
 			sys.exit(1)
@@ -244,7 +245,19 @@ class Server:
 
 		logging.info("setting up new server '%s'" % (self.name))
 
-		logging.debug("creating directory '%s'" % (self.server_dir))
+		if not os.path.exists(Defaults.dir_servers):
+			logging.debug("creating directory '%s' for all servers" % (Defaults.dir_servers))
+			os.makedirs(Defaults.dir_servers)
+
+		if not os.path.exists(Defaults.dir_backups):
+			logging.debug("creating backups directory '%s'" % (Defaults.dir_backups))
+			os.makedirs(Defaults.dir_backups)
+
+		if not os.path.exists(Defaults.dir_snapshots):
+			logging.debug("creating snapshots directory '%s'" % (Defaults.dir_snapshots))
+			os.makedirs(Defaults.dir_snapshots)
+
+		logging.debug("creating directory '%s' for this server" % (self.server_dir))
 		os.mkdir(self.server_dir)
 
 		new_jar = "%s/%s" % (self.server_dir, Defaults.game_jar)
