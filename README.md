@@ -1,4 +1,4 @@
 minecraft
 =========
 
-Minecraft server utilities.
+This repository contains scripts that facilitate easy control over Minecraft servers.
