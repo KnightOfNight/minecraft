@@ -150,7 +150,7 @@ class Server:
 				logging.error("timed out %ds waiting for server '%s' Java process to stop" % (max_checks, self.name))
 				sys.exit(1)
 
-			if not java_process_info(self.name):
+			elif not java_process_info(self.name):
 				break
 
 			time.sleep(1)
@@ -163,7 +163,7 @@ class Server:
 				logging.error("timed out %ds waiting for server '%s' screen session to stop" % (max_checks, self.name))
 				sys.exit(1)
 
-			if not self.name in server_screen_sessions():
+			elif not self.name in server_screen_sessions():
 				break
 
 			time.sleep(1)
@@ -287,6 +287,7 @@ def system(cmd):
 	if ret & 127:
 		logger.error("command '%s' exited with signal %d, %s coredump" % (cmd, ret & 127, "with" if ret & 128 else "without"))
 		sys.exit(1)
+
 	elif ret >> 8:
 		logger.error("command '%s' exited with %d" % (cmd, ret >> 8))
 		sys.exit(1)
