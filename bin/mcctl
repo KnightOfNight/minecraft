@@ -49,14 +49,15 @@ class Server:
 		while True:
 			checks += 1
 
-			if checks == log_wait_timeout:
+			if os.path.exists(log_file):
+				break
+
+			elif checks == log_wait_timeout:
 				logging.error("server log file '%s' does not exist" % (log_file))
 				sys.exit(1)
 
-			elif os.path.exists(log_file):
-				break
-
-			time.sleep(1)
+			else
+				time.sleep(1)
 
 		with open(log_file) as f:
 			lines = f.readlines()
@@ -146,27 +147,29 @@ class Server:
 		while True:
 			checks += 1
 
-			if checks == max_checks:
+			if not java_process_info(self.name):
+				break
+
+			elif checks == max_checks:
 				logging.error("timed out %ds waiting for server '%s' Java process to stop" % (max_checks, self.name))
 				sys.exit(1)
 
-			elif not java_process_info(self.name):
-				break
-
-			time.sleep(1)
+			else
+				time.sleep(1)
 
 		checks = 0
 		while True:
 			checks += 1
 
-			if checks == max_checks:
+			if not self.name in server_screen_sessions():
+				break
+
+			elif checks == max_checks:
 				logging.error("timed out %ds waiting for server '%s' screen session to stop" % (max_checks, self.name))
 				sys.exit(1)
 
-			elif not self.name in server_screen_sessions():
-				break
-
-			time.sleep(1)
+			else
+				time.sleep(1)
 
 		logging.info("server '%s' stopped" % self.name)
 
