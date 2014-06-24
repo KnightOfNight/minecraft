@@ -17,14 +17,12 @@ class Defaults:
 	screen_prefix = "mcserver"
 
 	dir_servers = "/usr/local/games/minecraft"
-
 	dir_backups = "/usr/local/games/minecraft/backups"
+	dir_snapshots = "/usr/local/games/minecraft/snapshots"
 
-	dir_snapshots = "/usr/local/games/minecraft/snapshot"
-
-	log_file = "logs/latest.log"
-
-	game_jar = "minecraft_server.jar"
+	server_log = "logs/latest.log"
+	server_jar = "minecraft_server.jar"
+	server_config = "server.properties"
 
 
 
@@ -34,16 +32,33 @@ class Server:
 		self.server_dir = "%s/%s" % (Defaults.dir_servers, self.name)
 		self.screen_name = "%s:%s" % (Defaults.screen_prefix, self.name)
 
-	def is_started(self):
-		servers = server_screen_sessions()
+	def is_setup(self):
+		if not os.path.exists(self.server_dir):
+			logging.debug("server directory '%s' does not exist" % (self.server_dir))
+			return False
 
-		if self.name in servers and java_process_info(self.name):
-			return True
+		jar = "%s/%s" % (self.server_dir, Defaults.server_jar)
+
+		if not os.path.exists(jar):
+			logging.debug("server jar file '%s' does not exist" % (jar))
+			return False
+
+		config = "%s/%s" % (self.server_dir, Defaults.server_config)
+
+		if not os.path.exists(config):
+			logging.debug("server configuration file '%s' does not exist" % (config))
+			return False
+
+		return True
+
+	def is_started(self):
+		if not self.name in server_screen_sessions() or not java_process_info(self.name):
+			return False
 
 		return False
 
 	def logtail(self, log_lines = -25, log_wait_timeout = 5):
-		log_file = "%s/%s" % (self.server_dir, Defaults.log_file)
+		log_file = "%s/%s" % (self.server_dir, Defaults.server_log)
 
 		checks = 0
 		while True:
@@ -68,6 +83,10 @@ class Server:
 			return(tail)
 
 	def status(self):
+		if not self.is_setup():
+			logging.error("cannot report status of server '%s', it is not setup" % (self.name))
+			sys.exit(1)
+
 		logging.info("server '%s' current status..." % (self.name))
 		for line in self.logtail():
 			print line
@@ -86,19 +105,23 @@ class Server:
 		self.command("save-all")
 
 	def start(self, memory = 512, log_wait_timeout = 5):
+		if not self.is_setup():
+			logging.error("cannot start server '%s', it is not setup" % (self.name))
+			sys.exit(1)
+
 		if self.is_started():
 			logging.error("cannot start server '%s', it is already started" % (self.name))
 			sys.exit(1)
 
 		logging.info("starting server '%s'" % self.name)
 
-		jar_file = "%s:%s" % (self.name, Defaults.game_jar)
+		jar_file = "%s:%s" % (self.name, Defaults.server_jar)
 
 		cmd = "/usr/bin/screen -S %s -d -m /usr/bin/java -Xms%sM -Xmx%sM -jar %s nogui" % (self.screen_name, memory, memory, jar_file)
 
 		os.chdir(self.server_dir)
 
-		shutil.copy(Defaults.game_jar, jar_file)
+		shutil.copy(Defaults.server_jar, jar_file)
 
 		system(cmd)
 
@@ -128,6 +151,10 @@ class Server:
 		logging.info("server '%s' started" % self.name)
 
 	def stop(self):
+		if not self.is_setup():
+			logging.error("cannot stop server '%s', it is not setup" % (self.name))
+			sys.exit(1)
+
 		if not self.is_started():
 			logging.error("cannot stop server '%s', it is not started" % self.name)
 			sys.exit(1)
@@ -174,6 +201,10 @@ class Server:
 		logging.info("server '%s' stopped" % self.name)
 
 	def snapshot(self):
+		if not self.is_setup():
+			logging.error("cannot snapshot server '%s', it is not setup" % (self.name))
+			sys.exit(1)
+
 		logging.info("taking snapshot of server '%s'", self.name)
 
 		lock = "%s/.snapshot" % (self.server_dir)
@@ -221,6 +252,10 @@ class Server:
 		logging.info("snapshot of server '%s' complete" % (self.name))
 
 	def backup(self):
+		if not self.is_setup():
+			logging.error("cannot backup server '%s', it is not setup" % (self.name))
+			sys.exit(1)
+
 		self.snapshot()
 
 		snapshot_dir = "%s/%s" % (Defaults.dir_snapshots, self.name)
@@ -238,7 +273,7 @@ class Server:
 
 	def setup(self, memory, source_jar):
 
-		if os.path.exists(self.server_dir):
+		if self.is_setup():
 			logging.error("server '%s' has already been setup" % (self.name))
 			sys.exit(1)
 
@@ -263,7 +298,7 @@ class Server:
 		logging.debug("creating directory '%s' for this server" % (self.server_dir))
 		os.mkdir(self.server_dir)
 
-		new_jar = "%s/%s" % (self.server_dir, Defaults.game_jar)
+		new_jar = "%s/%s" % (self.server_dir, Defaults.server_jar)
 
 		logging.debug("copying jar file '%s' to '%s'" % (source_jar, new_jar))
 		shutil.copy(source_jar, new_jar)
@@ -321,7 +356,7 @@ def java_process_info(server):
 	lines = [ line.strip() for line in lines ]
 	info = {}
 	for line in lines:
-		match = re.match("^([0-9]+) +([0-9]+) +/usr/bin/java -Xms[0-9]+M -Xmx([0-9]+)M -jar %s:%s nogui$" % (server, Defaults.game_jar), line)
+		match = re.match("^([0-9]+) +([0-9]+) +/usr/bin/java -Xms[0-9]+M -Xmx([0-9]+)M -jar %s:%s nogui$" % (server, Defaults.server_jar), line)
 
 		if match:
 			info["pid"] = match.group(1)
