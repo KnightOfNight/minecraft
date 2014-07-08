@@ -16,7 +16,9 @@ import time
 class Defaults:
 	screen_prefix = "mcserver"
 
-	dir_servers = "/usr/local/games/minecraft"
+	dir_minecraft = "/usr/local/games/minecraft"
+
+	dir_servers = "/usr/local/games/minecraft/servers"
 	dir_backups = "/usr/local/games/minecraft/backups"
 	dir_snapshots = "/usr/local/games/minecraft/snapshots"
 
@@ -55,7 +57,7 @@ class Server:
 		if not self.name in server_screen_sessions() or not java_process_info(self.name):
 			return False
 
-		return False
+		return True
 
 	def logtail(self, log_lines = -25, log_wait_timeout = 5):
 		log_file = "%s/%s" % (self.server_dir, Defaults.server_log)
@@ -208,6 +210,7 @@ class Server:
 		logging.info("taking snapshot of server '%s'", self.name)
 
 		lock = "%s/.snapshot" % (self.server_dir)
+		logging.debug("lock file '%s'" % lock)
 
 		if not lockfile(lock):
 			logging.error("cannot snapshot server '%s', a snapshot is already in progress" % (self.name))
@@ -283,16 +286,20 @@ class Server:
 
 		logging.info("setting up new server '%s'" % (self.name))
 
+		if not os.path.exists(Defaults.dir_minecraft):
+			logging.debug("creating directory '%s'" % (Defaults.dir_minecraft))
+			os.makedirs(Defaults.dir_minecraft)
+
 		if not os.path.exists(Defaults.dir_servers):
-			logging.debug("creating directory '%s' for all servers" % (Defaults.dir_servers))
+			logging.debug("creating directory '%s' for servers" % (Defaults.dir_servers))
 			os.makedirs(Defaults.dir_servers)
 
 		if not os.path.exists(Defaults.dir_backups):
-			logging.debug("creating backups directory '%s'" % (Defaults.dir_backups))
+			logging.debug("creating directory '%s' for backups" % (Defaults.dir_backups))
 			os.makedirs(Defaults.dir_backups)
 
 		if not os.path.exists(Defaults.dir_snapshots):
-			logging.debug("creating snapshots directory '%s'" % (Defaults.dir_snapshots))
+			logging.debug("creating directory '%s' for snapshots" % (Defaults.dir_snapshots))
 			os.makedirs(Defaults.dir_snapshots)
 
 		logging.debug("creating directory '%s' for this server" % (self.server_dir))
