@@ -324,6 +324,14 @@ class Server:
 
 		logging.info("applying game rules")
 
+		if not self.is_setup():
+			logging.error("cannot apply game rules to server '%s', it is not setup" % (self.name))
+			sys.exit(1)
+
+		if not self.is_started():
+			logging.error("cannot apply game rules to server '%s', it is not started" % (self.name))
+			sys.exit(1)
+
 		rules_file = "%s/%s" % (self.server_dir, "gamerules.json")
 		
 		if not os.path.exists(rules_file):
