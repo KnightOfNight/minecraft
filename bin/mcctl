@@ -29,7 +29,7 @@ class Defaults:
 
 	server_log = "logs/latest.log"
 	server_jar = "minecraft_server.jar"
-	server_config = "server.properties"
+	server_cfg = "server.properties"
 
 
 
@@ -50,7 +50,7 @@ class Server:
 			logging.debug("server jar file '%s' does not exist" % (jar))
 			return False
 
-		config = "%s/%s" % (self.dir, Defaults.server_config)
+		config = "%s/%s" % (self.dir, Defaults.server_cfg)
 
 		if not os.path.exists(config):
 			logging.debug("server configuration file '%s' does not exist" % (config))
