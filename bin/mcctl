@@ -3,6 +3,7 @@
 
 import argparse
 import filecmp
+import json
 import logging
 import os
 import re
@@ -153,6 +154,8 @@ class Server:
 
 		logging.info("server '%s' started" % self.name)
 
+		self.gamerules()
+
 	def stop(self):
 		if not self.is_setup():
 			logging.error("cannot stop server '%s', it is not setup" % (self.name))
@@ -277,6 +280,8 @@ class Server:
 
 	def setup(self, memory, source_jar):
 
+		logging.info("setting up new server '%s'" % (self.name))
+
 		if self.is_setup():
 			logging.error("server '%s' has already been setup" % (self.name))
 			sys.exit(1)
@@ -284,8 +289,6 @@ class Server:
 		if not os.path.exists(source_jar):
 			logging.error("jar file '%s' not found" % (source_jar))
 			sys.exit(1)
-
-		logging.info("setting up new server '%s'" % (self.name))
 
 		if not os.path.exists(Defaults.dir_minecraft):
 			logging.debug("creating directory '%s'" % (Defaults.dir_minecraft))
@@ -312,6 +315,34 @@ class Server:
 		shutil.copy(source_jar, new_jar)
 
 		self.start(memory = memory, log_wait_timeout = 30)
+
+	def gamerules(self):
+
+		logging.info("applying game rules")
+
+		rules_file = "%s/%s" % (self.server_dir, "gamerules.json")
+		
+		if not os.path.exists(rules_file):
+			logging.debug("game rules file '%s' does not exist" % (rules_file))
+			return None
+
+		with open(rules_file, "r") as f:
+			rules = json.load(f)
+
+			cmds = []
+
+			for key in rules.keys():
+				rule = str(key)
+				value = str(rules[key])
+				logging.debug("game rule '%s' set to '%s" % (rule, value))
+				cmds.append("gamerule %s %s" % ( key, rules[key] ))
+
+			for cmd in cmds:
+				self.command(cmd)
+				time.sleep(1)
+
+				for line in self.logtail(log_lines = -5):
+					logging.debug(line)
 
 
 
@@ -468,6 +499,13 @@ def action_setup_server(args):
 
 
 
+def action_gamerules_server(args):
+	server = args.server
+	s = Server(server)
+	s.gamerules()
+
+
+
 # parse arguments and call the requested action function
 parser = argparse.ArgumentParser(description="Minecraft Server Control", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -516,13 +554,20 @@ parser_setup.add_argument("-j", "--jar", metavar="JAR", help="jar file to use fo
 parser_setup.add_argument("-m", "--memory", metavar="MB", help="allocate this much memory to the server", default=512, type=int)
 parser_setup.set_defaults(func=action_setup_server)
 
+parser_gamerules = subparser.add_parser("gamerules", help="apply game rules to a server")
+parser_gamerules.add_argument("server", metavar="SERVER", help="name of the server")
+parser_gamerules.set_defaults(func=action_gamerules_server)
+
+
 
 args = parser.parse_args()
 
 if args.debug:
-	logging.basicConfig(format="%(asctime)s: %(levelname)s: %(message)s", level=logging.DEBUG, datefmt="%Y/%m/%d %H:%M:%S")
+	loglevel = logging.DEBUG
 else:
-	logging.basicConfig(format="%(asctime)s: %(levelname)s: %(message)s", level=logging.INFO, datefmt="%Y/%m/%d %H:%M:%S")
+	loglevel = logging.INFO
+
+logging.basicConfig(format="%(asctime)s: %(levelname)s: %(message)s", level=loglevel, datefmt="%Y/%m/%d %H:%M:%S")
 
 args.func(args)
 
