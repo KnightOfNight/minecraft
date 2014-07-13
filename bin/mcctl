@@ -23,9 +23,9 @@ class Defaults:
 
 	dir_minecraft = "/usr/local/games/minecraft"
 
-	dir_servers = "/usr/local/games/minecraft/servers"
-	dir_backups = "/usr/local/games/minecraft/backups"
-	dir_snapshots = "/usr/local/games/minecraft/snapshots"
+	dir_servers = "%s/servers" % (dir_minecraft)
+	dir_backups = "%s/backups" % (dir_minecraft)
+	dir_snapshots = "%s/snapshots" % (dir_minecraft)
 
 	server_log = "logs/latest.log"
 	server_jar = "minecraft_server.jar"
@@ -36,21 +36,21 @@ class Defaults:
 class Server:
 	def __init__(self, name):
 		self.name = name
-		self.server_dir = "%s/%s" % (Defaults.dir_servers, self.name)
-		self.screen_name = "%s:%s" % (Defaults.screen_prefix, self.name)
+		self.dir = "%s/%s" % (Defaults.dir_servers, self.name)
+		self.screen = "%s:%s" % (Defaults.screen_prefix, self.name)
 
 	def is_setup(self):
-		if not os.path.exists(self.server_dir):
-			logging.debug("server directory '%s' does not exist" % (self.server_dir))
+		if not os.path.exists(self.dir):
+			logging.debug("server directory '%s' does not exist" % (self.dir))
 			return False
 
-		jar = "%s/%s" % (self.server_dir, Defaults.server_jar)
+		jar = "%s/%s" % (self.dir, Defaults.server_jar)
 
 		if not os.path.exists(jar):
 			logging.debug("server jar file '%s' does not exist" % (jar))
 			return False
 
-		config = "%s/%s" % (self.server_dir, Defaults.server_config)
+		config = "%s/%s" % (self.dir, Defaults.server_config)
 
 		if not os.path.exists(config):
 			logging.debug("server configuration file '%s' does not exist" % (config))
@@ -65,7 +65,7 @@ class Server:
 		return True
 
 	def logtail(self, log_lines = -25, log_wait_timeout = 5):
-		log_file = "%s/%s" % (self.server_dir, Defaults.server_log)
+		log_file = "%s/%s" % (self.dir, Defaults.server_log)
 
 		checks = 0
 		while True:
@@ -106,7 +106,7 @@ class Server:
 
 		logging.debug("sending command '%s' to server '%s'" % (command, self.name))
 
-		system("/usr/bin/screen -p 0 -S '%s' -X eval 'stuff \"%s\"\015'" % (self.screen_name, command))
+		system("/usr/bin/screen -p 0 -S '%s' -X eval 'stuff \"%s\"\015'" % (self.screen, command))
 
 	def save(self):
 		logging.info("saving server '%s'" % (self.name))
@@ -125,9 +125,9 @@ class Server:
 
 		jar_file = "%s:%s" % (self.name, Defaults.server_jar)
 
-		cmd = "/usr/bin/screen -S %s -d -m /usr/bin/java -Xms%sM -Xmx%sM -jar %s nogui" % (self.screen_name, memory, memory, jar_file)
+		cmd = "/usr/bin/screen -S %s -d -m /usr/bin/java -Xms%sM -Xmx%sM -jar %s nogui" % (self.screen, memory, memory, jar_file)
 
-		os.chdir(self.server_dir)
+		os.chdir(self.dir)
 
 		shutil.copy(Defaults.server_jar, jar_file)
 
@@ -217,7 +217,7 @@ class Server:
 
 		logging.info("taking snapshot of server '%s'", self.name)
 
-		lock = "%s/.snapshot" % (self.server_dir)
+		lock = "%s/.snapshot" % (self.dir)
 		logging.debug("lock file '%s'" % lock)
 
 		if not lockfile(lock):
@@ -239,15 +239,15 @@ class Server:
 			shutil.rmtree(snapshot_dir)
 
 		logging.debug("copying files for new snapshot")
-		shutil.copytree(self.server_dir, snapshot_dir)
+		shutil.copytree(self.dir, snapshot_dir)
 
 		logging.debug("comparing snapshot files to original server files")
 		server_files = []
-		for path, dirs, files in os.walk(self.server_dir):
+		for path, dirs,files in os.walk(self.dir):
 			for file in files:
 				server_files.append(os.path.join(path, file))
-		server_files = [ str.replace(file, self.server_dir + "/", "") for file in server_files ]
-		cmp = filecmp.cmpfiles(self.server_dir, snapshot_dir, server_files)
+		server_files = [ str.replace(file, self.dir + "/", "") for file in server_files ]
+		cmp = filecmp.cmpfiles(self.dir, snapshot_dir, server_files)
 
 		if cmp[1] or cmp[2]:
 			logging.error("snapshot of server '%s' failed, differences found in one or more files" % (self.name))
@@ -310,10 +310,10 @@ class Server:
 			logging.debug("creating directory '%s' for snapshots" % (Defaults.dir_snapshots))
 			os.makedirs(Defaults.dir_snapshots)
 
-		logging.debug("creating directory '%s' for this server" % (self.server_dir))
-		os.mkdir(self.server_dir)
+		logging.debug("creating directory '%s' for this server" % (self.dir))
+		os.mkdir(self.dir)
 
-		new_jar = "%s/%s" % (self.server_dir, Defaults.server_jar)
+		new_jar = "%s/%s" % (self.dir, Defaults.server_jar)
 
 		logging.debug("copying jar file '%s' to '%s'" % (source_jar, new_jar))
 		shutil.copy(source_jar, new_jar)
@@ -332,7 +332,7 @@ class Server:
 			logging.error("cannot apply game rules to server '%s', it is not started" % (self.name))
 			sys.exit(1)
 
-		rules_file = "%s/%s" % (self.server_dir, "gamerules.json")
+		rules_file = "%s/%s" % (self.dir, "gamerules.json")
 		
 		if not os.path.exists(rules_file):
 			logging.debug("game rules file '%s' does not exist" % (rules_file))
