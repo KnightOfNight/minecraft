@@ -14,6 +14,10 @@ import time
 
 
 
+version = "mcctl v1.1.0"
+
+
+
 class Defaults:
 	screen_prefix = "mcserver"
 
@@ -509,7 +513,7 @@ def action_gamerules_server(args):
 # parse arguments and call the requested action function
 parser = argparse.ArgumentParser(description="Minecraft Server Control", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("-v", "--version", action="version", version="mcctl v1.0.1")
+parser.add_argument("-v", "--version", action="version", version=version)
 parser.add_argument("-d", "--debug", dest="debug", action="store_true", help="turn on debugging output")
 
 subparser = parser.add_subparsers(title="actions")
