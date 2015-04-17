@@ -14,7 +14,7 @@ import time
 
 
 
-version = "mcctl v1.1.0"
+version = "mcctl v1.1.1"
 
 
 
@@ -38,6 +38,7 @@ class Server:
 		self.name = name
 		self.dir = "%s/%s" % (Defaults.dir_servers, self.name)
 		self.screen = "%s:%s" % (Defaults.screen_prefix, self.name)
+		self.config = ServerConfig( "%s/%s" % (self.dir, Defaults.server_cfg) )
 
 	def is_setup(self):
 		if not os.path.exists(self.dir):
@@ -358,6 +359,30 @@ class Server:
 
 
 
+class ServerConfig:
+	def __init__(self, file):
+		self.values = {}
+
+		if not os.path.exists(file):
+			return
+
+		with open(file) as f:
+			lines = [ line.strip() for line in f.readlines() ]
+
+			for line in lines:
+				if re.match("^#", line):
+					continue
+
+				name,var = line.partition("=")[::2]
+
+				self.values[name] = var
+
+	def value(self, key):
+		if key in self.values:
+			return self.values[key]
+
+
+
 def lockfile(path):
 	if os.path.exists(path):
 		return(False)
@@ -428,13 +453,17 @@ def action_list_servers(args):
 
 	for server in server_screen_sessions():
 		info = java_process_info(server)
+		s = Server(server)
+		port = s.config.value('server-port')
+		if not port:
+			port = "unknown"
 
 		if not info:
 			logging.warn("no Java process information found for server '%s'" % server)
 			continue
 
 		memory = float(info['kb_used']) / float(info['kb_max']) * 100
-		print "Server: %s, PID %s, %s/%s kB (%.1f%%) memory" % (server, info['pid'], info['kb_used'], info['kb_max'], memory)
+		print "Server: %s, PID %s, %s/%s kB (%.1f%%) memory, port %s" % (server, info['pid'], info['kb_used'], info['kb_max'], memory, port)
 
 
 
