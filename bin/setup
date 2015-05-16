@@ -26,6 +26,6 @@ if [ ! -s "$script" ]; then
     echo "ERROR: $script not found"
     exit -1
 fi
-cp $script $INSTALL/bin/
-chmod 700 $INSTALL/bin/*
+cp -v $script $INSTALL/bin/
+chmod -v 700 $INSTALL/bin/*
 
