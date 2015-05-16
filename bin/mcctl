@@ -113,8 +113,8 @@ class Server:
 		logging.info("saving server '%s'" % (self.name))
 		self.command("save-all")
 
-	def start(self, memory = 512, log_wait_timeout = 5):
-		if not self.is_setup():
+	def start(self, memory = 512, log_wait_timeout = 5, first = False):
+		if not first and not self.is_setup():
 			logging.error("cannot start server '%s', it is not setup" % (self.name))
 			sys.exit(1)
 
@@ -319,7 +319,7 @@ class Server:
 		logging.debug("copying jar file '%s' to '%s'" % (source_jar, new_jar))
 		shutil.copy(source_jar, new_jar)
 
-		self.start(memory = memory, log_wait_timeout = 30)
+		self.start(memory = memory, log_wait_timeout = 30, first = True)
 
 	def gamerules(self):
 
