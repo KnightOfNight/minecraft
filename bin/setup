@@ -15,3 +15,4 @@ for subdir in backups bin etc jars logs servers snapshots; do
 done
 
 chown -Rv mcraft:mcraft $INSTALL
+find $INSTALL -type d | xargs chmod -v 700
