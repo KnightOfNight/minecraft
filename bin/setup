@@ -50,5 +50,5 @@ if [ ! -s "$script" ]; then
 fi
 cp -v $script $INSTALL/bin/
 
-chmod -rv 700 $INSTALL/bin/*
+chmod -vr 700 $INSTALL/bin/*
 
