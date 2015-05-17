@@ -32,7 +32,6 @@ log () {
 
     echo "#####################################################################################" >> $LOG
     echo "$msg" >> $LOG
-    echo "#####################################################################################" >> $LOG
 
     if [ "$verbose" = "yes" ]; then
         echo $msg
@@ -96,7 +95,7 @@ if [ -z "$server" ]; then
 fi
 
 
-log "starting"
+log "make-maps starting - server: $server"
 
 log "taking server snapshot..."
 if ! mcctl snapshot "$server" &>> $LOG; then

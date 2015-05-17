@@ -7,12 +7,8 @@ export INSTALL="/usr/local/games/minecraft"
 
 log() {
     local msg="$1"
-    echo >> $LOG
-    echo >> $LOG
-    echo >> $LOG
     echo "#####################################################################################" >> $LOG
     echo "$(date '+%Y-%m-%d %H:%M:%S') $msg" >> $LOG
-    echo "#####################################################################################" >> $LOG
 }
 
 log "setting up minecraft servers"
