@@ -1,17 +1,31 @@
 #!/bin/bash
 
-
 umask 077
 
+export LOG="/tmp/minecraft-setup"
 export INSTALL="/usr/local/games/minecraft"
 
+log() {
+    local msg="$1"
+    echo >> $LOG
+    echo >> $LOG
+    echo >> $LOG
+    echo "#####################################################################################" >> $LOG
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $msg" >> $LOG
+    echo "#####################################################################################" >> $LOG
+}
+
+log "setting up minecraft servers"
 
 # user and group
-groupadd -g 900 mcraft &>/dev/null
-useradd -g mcraft mcraft &>/dev/null
-passwd -l mcraft &>/dev/null
+log "setting up user and group"
+groupadd -g 900 mcraft &>>$LOG
+useradd -g mcraft mcraft &>>$LOG
+passwd -l mcraft &>>$LOG
 
 if ! grep -q umask /home/mcraft/.bashrc; then
+    log "updating bashrc"
+
     cat >> /home/mcraft/.bashrc << END
 umask 077
 export PATH="/usr/local/games/minecraft/bin:$PATH"
@@ -19,26 +33,28 @@ alias home="cd /usr/local/games/minecraft"
 END
 fi
 
-
 # dirs
-mkdir -p $INSTALL
+log "creating directories"
+mkdir -v -p $INSTALL &>>$LOG
 
 for subdir in backups bin etc jars logs servers snapshots; do
-    mkdir -p $INSTALL/$subdir
+    mkdir -v -p $INSTALL/$subdir &>>$LOG
 done
 
-chown -R mcraft:mcraft $INSTALL
-find $INSTALL -type d | xargs chmod 700
-
+log "verifying permissions"
+chown -v -R mcraft:mcraft $INSTALL &>>$LOG
+find $INSTALL -type d | xargs chmod -v 700 &>>$LOG
 
 # scripts
+log "installing scripts"
 for script in bin/mcctl bin/make-maps bin/make-maps-configs; do
     if [ ! -s "$script" ]; then
-        echo "ERROR: $script not found"
+        echo "ERROR: run this script from the git checkout directory"
         exit -1
     fi
-    cp $script $INSTALL/bin/
+    cp -v $script $INSTALL/bin/ &>>$LOG
 done
 
-chmod -R 700 $INSTALL/bin/*
+log "verifying permissions"
+chmod -v -R 700 $INSTALL/bin/* &>>$LOG
 
