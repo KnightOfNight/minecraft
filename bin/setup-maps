@@ -4,9 +4,28 @@ umask 077
 
 INSTALL="/usr/local/games/minecraft"
 
+echo
+echo "INFO: checking for $INSTALL/overviewer"
 if [ ! -d $INSTALL/overviewer ]; then
+    echo "INFO: it does not exist, creating"
     cd $INSTALL
     git clone https://github.com/overviewer/Minecraft-Overviewer.git overviewer
+    cd overviewer
+    python setup.py build
+
+    echo "INFO: verifying permissons"
+    chown -Rv mcraft:mcraft $INSTALL/overviewer
+
+else
+    echo "INFO: it already exists"
+
 fi
 
-chown -Rv mcraft:mcraft $INSTALL/overviewer
+if [ ! -d $INSTALL/maps ]; then
+    mkdir -pv "$INSTALL/maps"
+    mkdir -pv "$INSTALL/maps/build"
+    mkdir -pv "$INSTALL/maps/www"
+
+    chown -v mcraft:mcraft $INSTALL/maps $INSTALL/maps/build $INSTALL/maps/www
+fi
+
