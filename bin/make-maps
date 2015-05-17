@@ -51,21 +51,18 @@ make_map () {
 
     cd "$PROG_DIR"
 
-    log "begin generating map $(basename $cfg)..."
+    log "begin generating map - cfg: $(basename $cfg)"
     if ! ./overviewer.py $force --config "$cfg" &>> $LOG; then
         log "overviewer failed"
         exit -1
     fi
-    log "end generating map $(basename $cfg)..."
 
-    log "begin setting permissions on all output files..."
+    log "verifying permissions"
     find $BUILD_DIR/$map_name -type d | xargs chmod -v 755 &>> $LOG
     find $BUILD_DIR/$map_name -type f | xargs chmod -v 644 &>> $LOG
-    log "done setting permissions on all output files..."
 
-    log "begin moving new map into place..."
+    log "moving map into place"
     rsync --verbose --archive --inplace --whole-file --delete-after "$BUILD_DIR/$map_name" "$WWW_DIR/" &>> $LOG
-    log "done moving new map into place..."
 
 }
 
@@ -102,20 +99,13 @@ if ! mcctl snapshot "$server" &>> $LOG; then
     exit -1
 fi
 
-log "making overworld maps"
-cfg="$CFG_DIR/OV-$server-over.txt"
-map_name="$server-over"
-make_map "$cfg" "$map_name"
+for region in over under nether; do
+    cfg="$CFG_DIR/OV-$server-$region.txt"
+    map_name="$server-$region"
+    make_map "$cfg" "$map_name"
+done
 
-log "making underworld maps"
-cfg="$CFG_DIR/OV-$server-under.txt"
-map_name="$server-under"
-make_map "$cfg" "$map_name"
-
-log "making nether maps"
-cfg="$CFG_DIR/OV-$server-nether.txt"
-map_name="$server-nether"
-make_map "$cfg" "$map_name"
+log "make-maps exiting"
 
 exit
 
