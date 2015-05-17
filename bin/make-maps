@@ -1,6 +1,9 @@
 #!/bin/bash
 
 
+umask 002
+
+
 export PATH="/usr/local/games/minecraft/bin:$PATH"
 
 
