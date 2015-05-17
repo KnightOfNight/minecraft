@@ -29,7 +29,7 @@ message () {
     local msg="$1"
 
     echo
-    echo "$(date) ($(date +%s)) - $msg"
+    echo "$(date +%Y-%m-%d %H:%M:%S) $msg"
 }
 
 
@@ -52,7 +52,9 @@ make_map () {
         exit -1
     fi
 
+
     cd "$OV_PROG_DIR"
+
 
     message "begin generating map $(basename $cfg)..."
     if ! ./overviewer.py $force --config "$cfg"; then
@@ -61,10 +63,12 @@ make_map () {
     fi
     message "end generating map $(basename $cfg)..."
 
+
     message "begin setting permissions on all output files..."
     find $OV_BUILD_DIR/$map_name -type d | xargs chmod 755
     find $OV_BUILD_DIR/$map_name -type f | xargs chmod 644
     message "done setting permissions on all output files..."
+
 
     message "begin moving new map into place..."
     rsync --archive --inplace --whole-file --delete-after "$OV_BUILD_DIR/$map_name" "$OV_WWW_DIR/"
@@ -79,7 +83,7 @@ while getopts "s:fvh" opt; do
             server="$OPTARG"
             ;;
         f)
-            force="--forcerender"
+            force="--check-tiles"
             ;;
         v)
             verbose="yes"
