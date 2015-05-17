@@ -1,14 +1,14 @@
 #!/bin/bash
 
 
-export OV_PROG_DIR="/usr/local/games/minecraft/overviewer"
-export OV_CFG_DIR="/usr/local/games/minecraft/etc"
-export OV_BUILD_DIR="/usr/local/games/minecraft/maps/build"
-export OV_WWW_DIR="/usr/local/games/minecraft/maps/www"
-
-export MAP_LOG="/usr/local/games/minecraft/logs/maps"
-
 export PATH="/usr/local/games/minecraft/bin:$PATH"
+
+
+export PROG_DIR="/usr/local/games/minecraft/overviewer"
+export CFG_DIR="/usr/local/games/minecraft/etc"
+export BUILD_DIR="/usr/local/games/minecraft/maps/build"
+export WWW_DIR="/usr/local/games/minecraft/maps/www"
+export LOG="/usr/local/games/minecraft/logs/maps"
 
 export server=""
 export verbose=""
@@ -31,9 +31,9 @@ log () {
     msg="$(date '+%Y-%m-%d %H:%M:%S') $msg"
 
     if [ "$verbose" = "yes" ]; then
-        echo $msg | tee -a "$MAP_LOG"
+        echo $msg | tee -a "$LOG"
     else
-        echo $msg >> "$MAP_LOG"
+        echo $msg >> "$LOG"
     fi
 }
 
@@ -48,9 +48,7 @@ make_map () {
         exit -1
     fi
 
-
-    cd "$OV_PROG_DIR"
-
+    cd "$PROG_DIR"
 
     log "begin generating map $(basename $cfg)..."
     if ! ./overviewer.py $force --config "$cfg" &>> $LOG; then
@@ -59,15 +57,13 @@ make_map () {
     fi
     log "end generating map $(basename $cfg)..."
 
-
     log "begin setting permissions on all output files..."
-    find $OV_BUILD_DIR/$map_name -type d | xargs chmod -v 755 &>> $LOG
-    find $OV_BUILD_DIR/$map_name -type f | xargs chmod -v 644 &>> $LOG
+    find $BUILD_DIR/$map_name -type d | xargs chmod -v 755 &>> $LOG
+    find $BUILD_DIR/$map_name -type f | xargs chmod -v 644 &>> $LOG
     log "done setting permissions on all output files..."
 
-
     log "begin moving new map into place..."
-    rsync --verbose --archive --inplace --whole-file --delete-after "$OV_BUILD_DIR/$map_name" "$OV_WWW_DIR/" &>> $LOG
+    rsync --verbose --archive --inplace --whole-file --delete-after "$BUILD_DIR/$map_name" "$WWW_DIR/" &>> $LOG
     log "done moving new map into place..."
 
 }
@@ -91,6 +87,7 @@ while getopts "s:fvh" opt; do
     esac
 done
 
+
 if [ -z "$server" ]; then
     echo "ERROR: no server specified"
     exit -1
@@ -105,17 +102,17 @@ if ! mcctl snapshot "$server" &>> $LOG; then
 fi
 
 log "making overworld maps"
-cfg="$OV_CFG_DIR/OV-$server-over.txt"
+cfg="$CFG_DIR/OV-$server-over.txt"
 map_name="$server-over"
 make_map "$cfg" "$map_name"
 
 log "making underworld maps"
-cfg="$OV_CFG_DIR/OV-$server-under.txt"
+cfg="$CFG_DIR/OV-$server-under.txt"
 map_name="$server-under"
 make_map "$cfg" "$map_name"
 
 log "making nether maps"
-cfg="$OV_CFG_DIR/OV-$server-nether.txt"
+cfg="$CFG_DIR/OV-$server-nether.txt"
 map_name="$server-nether"
 make_map "$cfg" "$map_name"
 
