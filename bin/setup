@@ -1,6 +1,11 @@
 #!/bin/bash
 
 
+umask 077
+
+export INSTALL="/usr/local/games/minecraft"
+
+
 # user and group
 groupadd -g 900 mcraft
 useradd -g mcraft mcraft
@@ -16,39 +21,24 @@ fi
 
 
 # dirs
-export INSTALL="/usr/local/games/minecraft"
-
-mkdir -v $INSTALL
+mkdir -p $INSTALL
 
 for subdir in backups bin etc jars logs servers snapshots; do
-    mkdir -pv $INSTALL/$subdir
+    mkdir -p $INSTALL/$subdir
 done
 
-chown -Rv mcraft:mcraft $INSTALL
+chown -R mcraft:mcraft $INSTALL
 find $INSTALL -type d | xargs chmod -v 700
 
 
-# script
-script="bin/mcctl"
-if [ ! -s "$script" ]; then
-    echo "ERROR: $script not found"
-    exit -1
-fi
-cp -v $script $INSTALL/bin/
-
-script="bin/make-maps"
-if [ ! -s "$script" ]; then
-    echo "ERROR: $script not found"
-    exit -1
-fi
-cp -v $script $INSTALL/bin/
-
-script="bin/make-maps-configs"
-if [ ! -s "$script" ]; then
-    echo "ERROR: $script not found"
-    exit -1
-fi
-cp -v $script $INSTALL/bin/
+# scripts
+for script in bin/mcctl bin/make-maps bin/make-maps-configs; do
+    if [ ! -s "$script" ]; then
+        echo "ERROR: $script not found"
+        exit -1
+    fi
+    cp $script $INSTALL/bin/
+done
 
 chmod -vr 700 $INSTALL/bin/*
 
