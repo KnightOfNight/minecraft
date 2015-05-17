@@ -85,7 +85,7 @@ renders["Under180"] = {
 EO_UNDER
 
 cat > $nether << EO_NETHER
-worlds["$server"]   = "/usr/local/games/minecraft/snapshots/$server/word"
+worlds["$server"]   = "/usr/local/games/minecraft/snapshots/$server/world"
 outputdir           = "/usr/local/games/minecraft/maps/build/$server-nether"
 texturepath         = "$jar"
 processes           = 1
