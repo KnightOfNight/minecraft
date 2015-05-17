@@ -1,9 +1,12 @@
 #!/bin/bash
 
+
 umask 077
+
 
 export LOG="/tmp/minecraft-setup"
 export INSTALL="/usr/local/games/minecraft"
+
 
 log() {
     local msg="$1"
@@ -11,7 +14,9 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') $msg" >> $LOG
 }
 
+
 log "setting up minecraft servers"
+
 
 # user and group
 log "setting up user and group"
@@ -29,17 +34,20 @@ alias home="cd /usr/local/games/minecraft"
 END
 fi
 
+
 # dirs
 log "creating directories"
 mkdir -v -p $INSTALL &>>$LOG
 
-for subdir in backups bin etc jars logs servers snapshots; do
+for subdir in backups bin etc jars logs servers snapshots maps maps/build maps/www; do
     mkdir -v -p $INSTALL/$subdir &>>$LOG
+    chmod -v 700 $INSTALL/$subdir &>> $LOG
 done
+chmod -v 711 $INSTALL $INSTALL/maps $INSTALL/maps/www &>>$LOG
 
 log "verifying permissions"
 chown -v -R mcraft:mcraft $INSTALL &>>$LOG
-find $INSTALL -type d | xargs chmod -v 700 &>>$LOG
+
 
 # scripts
 log "installing scripts"
@@ -53,4 +61,29 @@ done
 
 log "verifying permissions"
 chmod -v -R 700 $INSTALL/bin/* &>>$LOG
+
+
+# overviewer
+log "setting up overviewer"
+if [ ! -d $INSTALL/overviewer ]; then
+    cd $INSTALL
+
+    log "cloning overviewer repository"
+    if ! git clone https://github.com/overviewer/Minecraft-Overviewer.git overviewer &>>$LOG ; then
+        exit -1
+    fi
+
+    cd overviewer
+
+    log "building overviewer"
+    if ! python setup.py build &>>$LOG ; then
+        exit -1
+    fi
+
+    chown -v -R mcraft:mcraft $INSTALL/overviewer &>>$LOG
+
+else
+    log "overviewer software already installed"
+
+fi
 
