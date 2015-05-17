@@ -2,28 +2,29 @@
 
 umask 077
 
+LOG="/tmp/minecraft-maps-setup"
 INSTALL="/usr/local/games/minecraft"
 
 if [ ! -d $INSTALL/overviewer ]; then
     cd $INSTALL
 
-    if ! git clone https://github.com/overviewer/Minecraft-Overviewer.git overviewer &>>/tmp/minecraft-maps-setup ; then
+    if ! git clone https://github.com/overviewer/Minecraft-Overviewer.git overviewer &>>$LOG ; then
         exit -1
     fi
 
     cd overviewer
 
-    if ! python setup.py build &>>minecraft-maps-setup ; then
+    if ! python setup.py build &>>$LOG ; then
         exit -1
     fi
 
-    chown -R mcraft:mcraft $INSTALL/overviewer
+    chown -v -R mcraft:mcraft $INSTALL/overviewer &>>$LOG
 fi
 
 if [ ! -d $INSTALL/maps ]; then
-    mkdir -p $INSTALL/maps $INSTALL/maps/build $INSTALL/maps/www
-    chown -R mcraft:mcraft $INSTALL/maps
+    mkdir -v -p $INSTALL/maps $INSTALL/maps/build $INSTALL/maps/www &>>$LOG
+    chown -v -R mcraft:mcraft $INSTALL/maps &>>$LOG
 fi
 
-chmod 711 $INSTALL $INSTALL/maps $INSTALL/maps/www
+chmod -v 711 $INSTALL $INSTALL/maps $INSTALL/maps/www &>>$LOG
 
