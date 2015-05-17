@@ -1,0 +1,107 @@
+#!/bin/bash
+
+export OV_CFG_DIR="/usr/local/games/minecraft/etc"
+
+export server=""
+export jar=""
+export verbose=""
+
+usage () {
+    cat << EOUSAGE
+make-maps-config -s <server> [-v]
+-s <server>     name the server to make map configs for
+-j <jar>        path to the jar file containing Minecraft textures
+-v              verbose
+EOUSAGE
+}
+
+while getopts "s:j:fvh" opt; do
+    case "$opt" in
+        s)
+            server="$OPTARG"
+            ;;
+        j)
+            jar="$OPTARG"
+            ;;
+        v)
+            verbose="yes"
+            ;;
+        h)
+            usage
+            exit -1
+            ;;
+    esac
+done
+
+if [ -z "$server" ]; then
+    echo "ERROR: no server specified"
+    exit -1
+fi
+
+if [ -z "$jar" ]; then
+    echo "ERROR: no jar specified"
+    exit -1
+fi
+
+over="$OV_CFG_DIR/OV-$server-over.txt"
+under="$OV_CFG_DIR/OV-$server-under.txt"
+nether="$OV_CFG_DIR/OV-$server-nether.txt"
+
+cat > $over << EO_OVER
+worlds["$server"]   = "/usr/local/games/minecraft/snapshots/$server/world"
+outputdir           = "/usr/local/games/minecraft/maps/build/$server-over"
+texturepath         = "$jar"
+processes           = 1
+
+renders["Over000"] = {
+    "world": "$server",
+    "title": "NW",
+}
+
+renders["Over180"] = {
+    "world": "$server",
+    "title": "SE",
+    "northdirection": "lower-right"
+}
+EO_OVER
+
+cat > $under << EO_UNDER
+worlds["$server"]   = "/usr/local/games/minecraft/snapshots/$server/world"
+outputdir           = "/usr/local/games/minecraft/maps/build/$server-under"
+texturepath         = "$jar"
+processes           = 1
+
+renders["Under000"] = {
+    "world": "$server",
+    "title": "NW",
+    "rendermode": "cave"
+}
+renders["Under180"] = {
+    "world": "$server",
+    "title": "SE",
+    "rendermode": "cave",
+    "northdirection": "lower-right"
+}
+EO_UNDER
+
+cat > $nether << EO_NETHER
+worlds["$server"]   = "/usr/local/games/minecraft/snapshots/$server/word"
+outputdir           = "/usr/local/games/minecraft/maps/build/$server-nether"
+texturepath         = "$jar"
+processes           = 1
+
+renders["Nether000"] = {
+    "world": "$server",
+    "dimension": "nether",
+    "title": "NW",
+    "rendermode": "nether"
+}
+renders["Nether180"] = {
+    "world": "$server",
+    "dimension": "nether",
+    "title": "SE",
+    "rendermode": "nether",
+    "northdirection": "lower-right"
+}
+EO_NETHER
+

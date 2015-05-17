@@ -1,0 +1,123 @@
+#!/bin/bash
+
+
+export OV_PROG_DIR="/usr/local/games/minecraft/overviewer"
+export OV_CFG_DIR="/usr/local/games/minecraft/etc"
+export OV_BUILD_DIR="/usr/local/games/minecraft/maps/build"
+export OV_WWW_DIR="/usr/local/games/minecraft/maps/www"
+
+export MAP_LOG="/usr/local/games/minecraft/logs/maps"
+
+export PATH="/usr/local/games/minecraft/bin:$PATH"
+
+export server=""
+export verbose=""
+export force=""
+
+
+usage () {
+    cat << EOUSAGE
+make-maps -s <server> [-f] [-v]
+-s <server>     name the server to map
+-f              force render
+-v              verbose
+EOUSAGE
+}
+
+
+message () {
+    msg="$1"
+
+    echo
+    echo "$(date) ($(date +%s)) - $msg"
+}
+
+
+log () {
+    if [ "$verbose" = "yes" ]; then
+        cat | tee -a "$MAP_LOG"
+    else
+        cat >> "$MAP_LOG"
+    fi
+}
+
+
+make_map () {
+
+    cfg="$1"
+    map_name="$2"
+
+    if [ ! -s "$cfg" ]; then
+        message "configuration '$cfg' does not exist"
+        exit -1
+    fi
+
+    cd "$OV_PROG_DIR"
+
+    message "begin generating map $(basename $cfg)..."
+    if ! ./overviewer.py $force --config "$cfg"; then
+        message "overviewer failed"
+        exit -1
+    fi
+    message "end generating map $(basename $cfg)..."
+
+    message "begin setting permissions on all output files..."
+    chmod -R 755 "$OV_BUILD_DIR/$map_name"
+    message "done setting permissions on all output files..."
+
+    message "begin moving new map into place..."
+    rsync --archive --inplace --whole-file --delete-after "$OV_BUILD_DIR/$map_name" "$OV_WWW_DIR/"
+    message "done moving new map into place..."
+
+}
+
+
+while getopts "s:fvh" opt; do
+    case "$opt" in
+        s)
+            server="$OPTARG"
+            ;;
+        f)
+            force="--forcerender"
+            ;;
+        v)
+            verbose="yes"
+            ;;
+        h)
+            usage
+            exit -1
+            ;;
+    esac
+done
+
+if [ -z "$server" ]; then
+    echo "ERROR: no server specified"
+    exit -1
+fi
+
+
+(
+
+message "starting"
+
+message "taking server snapshot..."
+if ! mcctl snapshot "$server"; then
+    exit -1
+fi
+
+cfg="$OV_CFG_DIR/OV-$server-over.txt"
+map_name="$server-over"
+make_map "$cfg" "$map_name"
+
+cfg="$OV_CFG_DIR/OV-$server-under.txt"
+map_name="$server-under"
+make_map "$cfg" "$map_name"
+
+cfg="$OV_CFG_DIR/OV-$server-nether.txt"
+map_name="$server-nether"
+make_map "$cfg" "$map_name"
+
+) 2>&1 | log
+
+exit
+
