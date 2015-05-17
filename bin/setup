@@ -28,7 +28,7 @@ for subdir in backups bin etc jars logs servers snapshots; do
 done
 
 chown -R mcraft:mcraft $INSTALL
-find $INSTALL -type d | xargs chmod -v 700
+find $INSTALL -type d | xargs chmod 700
 
 
 # scripts
@@ -40,5 +40,5 @@ for script in bin/mcctl bin/make-maps bin/make-maps-configs; do
     cp $script $INSTALL/bin/
 done
 
-chmod -vr 700 $INSTALL/bin/*
+chmod -r 700 $INSTALL/bin/*
 
