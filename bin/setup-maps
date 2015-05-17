@@ -7,6 +7,10 @@ INSTALL="/usr/local/games/minecraft"
 
 log() {
     local msg="$1"
+    echo >> $LOG
+    echo >> $LOG
+    echo >> $LOG
+    echo >> $LOG
     echo "$(date '+%Y-%m-%d %H:%M:%S') $msg" >> $LOG
 }
 
@@ -28,14 +32,22 @@ if [ ! -d $INSTALL/overviewer ]; then
     fi
 
     chown -v -R mcraft:mcraft $INSTALL/overviewer &>>$LOG
+
+else
+    log "overviewer software already installed"
+
 fi
 
 if [ ! -d $INSTALL/maps ]; then
     log "creating directories"
     mkdir -v -p $INSTALL/maps $INSTALL/maps/build $INSTALL/maps/www &>>$LOG
     chown -v -R mcraft:mcraft $INSTALL/maps &>>$LOG
+
+else
+    log "directories already exist"
+
 fi
 
-log "setting permissions"
+log "verifying permissions"
 chmod -v 711 $INSTALL $INSTALL/maps $INSTALL/maps/www &>>$LOG
 
