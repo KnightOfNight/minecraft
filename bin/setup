@@ -37,4 +37,19 @@ fi
 cp -v $script $INSTALL/bin/
 chmod -v 700 $INSTALL/bin/*
 
+script="bin/make-maps"
+if [ ! -s "$script" ]; then
+    echo "ERROR: $script not found"
+    exit -1
+fi
+cp -v $script $INSTALL/bin/
+chmod -v 700 $INSTALL/bin/*
+
+script="bin/make-maps-configs"
+if [ ! -s "$script" ]; then
+    echo "ERROR: $script not found"
+    exit -1
+fi
+cp -v $script $INSTALL/bin/
+chmod -v 700 $INSTALL/bin/*
 
