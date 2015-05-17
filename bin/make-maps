@@ -26,7 +26,7 @@ EOUSAGE
 
 
 message () {
-    msg="$1"
+    local msg="$1"
 
     echo
     echo "$(date) ($(date +%s)) - $msg"
@@ -44,8 +44,8 @@ log () {
 
 make_map () {
 
-    cfg="$1"
-    map_name="$2"
+    local cfg="$1"
+    local map_name="$2"
 
     if [ ! -s "$cfg" ]; then
         message "configuration '$cfg' does not exist"
@@ -62,7 +62,8 @@ make_map () {
     message "end generating map $(basename $cfg)..."
 
     message "begin setting permissions on all output files..."
-    chmod -R 755 "$OV_BUILD_DIR/$map_name"
+    find $OV_BUILD_DIR/$map_name -type d | xargs chmod 755
+    find $OV_BUILD_DIR/$map_name -type f | xargs chmod 644
     message "done setting permissions on all output files..."
 
     message "begin moving new map into place..."
@@ -105,14 +106,17 @@ if ! mcctl snapshot "$server"; then
     exit -1
 fi
 
+message "making overworld maps"
 cfg="$OV_CFG_DIR/OV-$server-over.txt"
 map_name="$server-over"
 make_map "$cfg" "$map_name"
 
+message "making underworld maps"
 cfg="$OV_CFG_DIR/OV-$server-under.txt"
 map_name="$server-under"
 make_map "$cfg" "$map_name"
 
+message "making nether maps"
 cfg="$OV_CFG_DIR/OV-$server-nether.txt"
 map_name="$server-nether"
 make_map "$cfg" "$map_name"
