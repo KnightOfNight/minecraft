@@ -7,9 +7,9 @@ export INSTALL="/usr/local/games/minecraft"
 
 
 # user and group
-groupadd -g 900 mcraft
-useradd -g mcraft mcraft
-passwd -l mcraft
+groupadd -g 900 mcraft &>/dev/null
+useradd -g mcraft mcraft &>/dev/null
+passwd -l mcraft &>/dev/null
 
 if ! grep -q umask /home/mcraft/.bashrc; then
     cat >> /home/mcraft/.bashrc << END
