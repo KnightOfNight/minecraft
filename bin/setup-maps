@@ -1,0 +1,12 @@
+#!/bin/bash
+
+umask 077
+
+INSTALL="/usr/local/games/minecraft"
+
+if [ ! -d $INSTALL/overviewer ]; then
+    cd $INSTALL
+    git clone https://github.com/overviewer/Minecraft-Overviewer.git overviewer
+fi
+
+chown -Rv mcraft:mcraft $INSTALL/overviewer
