@@ -25,19 +25,15 @@ EOUSAGE
 }
 
 
-message () {
+log () {
     local msg="$1"
 
-    echo
-    echo "$(date +%Y-%m-%d %H:%M:%S) $msg"
-}
+    msg="$(date '+%Y-%m-%d %H:%M:%S') $msg"
 
-
-log () {
     if [ "$verbose" = "yes" ]; then
-        cat | tee -a "$MAP_LOG"
+        echo $msg | tee -a "$MAP_LOG"
     else
-        cat >> "$MAP_LOG"
+        echo $msg >> "$MAP_LOG"
     fi
 }
 
@@ -48,7 +44,7 @@ make_map () {
     local map_name="$2"
 
     if [ ! -s "$cfg" ]; then
-        message "configuration '$cfg' does not exist"
+        log "configuration '$cfg' does not exist"
         exit -1
     fi
 
@@ -56,23 +52,23 @@ make_map () {
     cd "$OV_PROG_DIR"
 
 
-    message "begin generating map $(basename $cfg)..."
-    if ! ./overviewer.py $force --config "$cfg"; then
-        message "overviewer failed"
+    log "begin generating map $(basename $cfg)..."
+    if ! ./overviewer.py $force --config "$cfg" &>> $LOG; then
+        log "overviewer failed"
         exit -1
     fi
-    message "end generating map $(basename $cfg)..."
+    log "end generating map $(basename $cfg)..."
 
 
-    message "begin setting permissions on all output files..."
-    find $OV_BUILD_DIR/$map_name -type d | xargs chmod 755
-    find $OV_BUILD_DIR/$map_name -type f | xargs chmod 644
-    message "done setting permissions on all output files..."
+    log "begin setting permissions on all output files..."
+    find $OV_BUILD_DIR/$map_name -type d | xargs chmod -v 755 &>> $LOG
+    find $OV_BUILD_DIR/$map_name -type f | xargs chmod -v 644 &>> $LOG
+    log "done setting permissions on all output files..."
 
 
-    message "begin moving new map into place..."
-    rsync --archive --inplace --whole-file --delete-after "$OV_BUILD_DIR/$map_name" "$OV_WWW_DIR/"
-    message "done moving new map into place..."
+    log "begin moving new map into place..."
+    rsync --verbose --archive --inplace --whole-file --delete-after "$OV_BUILD_DIR/$map_name" "$OV_WWW_DIR/" &>> $LOG
+    log "done moving new map into place..."
 
 }
 
@@ -101,31 +97,27 @@ if [ -z "$server" ]; then
 fi
 
 
-(
+log "starting"
 
-message "starting"
-
-message "taking server snapshot..."
-if ! mcctl snapshot "$server"; then
+log "taking server snapshot..."
+if ! mcctl snapshot "$server" &>> $LOG; then
     exit -1
 fi
 
-message "making overworld maps"
+log "making overworld maps"
 cfg="$OV_CFG_DIR/OV-$server-over.txt"
 map_name="$server-over"
 make_map "$cfg" "$map_name"
 
-message "making underworld maps"
+log "making underworld maps"
 cfg="$OV_CFG_DIR/OV-$server-under.txt"
 map_name="$server-under"
 make_map "$cfg" "$map_name"
 
-message "making nether maps"
+log "making nether maps"
 cfg="$OV_CFG_DIR/OV-$server-nether.txt"
 map_name="$server-nether"
 make_map "$cfg" "$map_name"
-
-) 2>&1 | log
 
 exit
 
