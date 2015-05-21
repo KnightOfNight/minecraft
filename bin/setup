@@ -21,7 +21,7 @@ log "setting up minecraft servers"
 # user and group
 log "setting up user and group"
 groupadd -g 900 mcraft &>>$LOG
-useradd -g mcraft mcraft &>>$LOG
+useradd -g mcraft -G webmaster mcraft &>>$LOG
 passwd -l mcraft &>>$LOG
 
 if ! grep -q umask /home/mcraft/.bashrc; then
