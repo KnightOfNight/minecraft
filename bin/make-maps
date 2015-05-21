@@ -91,6 +91,7 @@ done
 
 if [ -z "$server" ]; then
     echo "ERROR: no server specified"
+    usage
     exit -1
 fi
 
