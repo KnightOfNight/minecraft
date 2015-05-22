@@ -55,13 +55,25 @@ processes           = 1
 
 renders["Over000"] = {
     "world": "$server",
+    "title": "NE",
+}
+
+renders["Over090"] = {
+    "world": "$server",
     "title": "NW",
+    "northdirection": "upper-right"
 }
 
 renders["Over180"] = {
     "world": "$server",
-    "title": "SE",
+    "title": "SW",
     "northdirection": "lower-right"
+}
+
+renders["Over270"] = {
+    "world": "$server",
+    "title": "SE",
+    "northdirection": "lower-left"
 }
 EO_OVER
 
@@ -73,12 +85,12 @@ processes           = 1
 
 renders["Under000"] = {
     "world": "$server",
-    "title": "NW",
+    "title": "NE",
     "rendermode": "cave"
 }
 renders["Under180"] = {
     "world": "$server",
-    "title": "SE",
+    "title": "SW",
     "rendermode": "cave",
     "northdirection": "lower-right"
 }
@@ -93,13 +105,13 @@ processes           = 1
 renders["Nether000"] = {
     "world": "$server",
     "dimension": "nether",
-    "title": "NW",
+    "title": "NE",
     "rendermode": "nether"
 }
 renders["Nether180"] = {
     "world": "$server",
     "dimension": "nether",
-    "title": "SE",
+    "title": "SW",
     "rendermode": "nether",
     "northdirection": "lower-right"
 }
