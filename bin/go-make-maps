@@ -40,7 +40,7 @@ if [ -z "$server" ]; then
 fi
 
 
-cmd="screen -S mcserver:$server-maps -d -m /usr/local/games/minecraft/bin/make-maps -v -s $server $force"
+cmd="screen -S 'mcserver:$server-maps' -d -m /usr/local/games/minecraft/bin/make-maps -v -s $server $force"
 
 if [ $debug -gt 0 ]; then
     echo $cmd
