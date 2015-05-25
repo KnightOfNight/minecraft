@@ -19,7 +19,7 @@ version = "mcctl v1.1.3"
 
 
 class Defaults:
-	screen_prefix = "mc-"
+	screen_prefix = "mcserver-"
 
 	dir_minecraft = "/usr/local/games/minecraft"
 
