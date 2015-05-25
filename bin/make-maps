@@ -98,6 +98,8 @@ fi
 
 log "make-maps starting - server: $server"
 
+log "force render: $( [ -z "$force" ] && echo "off" || echo "on" )"
+
 log "taking server snapshot..."
 if ! mcctl snapshot "$server" &>> $LOG; then
     exit -1
