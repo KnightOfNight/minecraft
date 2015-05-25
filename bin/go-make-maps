@@ -1,0 +1,10 @@
+#!/bin/bash
+
+server="$1"
+
+if [ -z "$server" ]; then
+    echo "Usage: $(basename $0) <server>"
+    exit -1
+fi
+
+echo screen -d -m -S mcserver:$server-maps /usr/local/games/minecraft/bin/make-maps -s $server
