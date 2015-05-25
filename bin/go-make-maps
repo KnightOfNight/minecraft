@@ -40,13 +40,16 @@ if [ -z "$server" ]; then
 fi
 
 
-if pgrep -f "SCREEN -S mc-$server-maps" > /dev/null; then
+screen_session="mcmaps-$server"
+
+
+if pgrep -f "SCREEN -S $screen_session" > /dev/null; then
     echo "ERROR: maps already running for server 'greatorex'"
     exit -1
 fi
 
 
-cmd="screen -S mc-$server-maps -d -m /usr/local/games/minecraft/bin/make-maps -v -s $server $force"
+cmd="screen -S $screen_session -d -m /usr/local/games/minecraft/bin/make-maps -v -s $server $force"
 
 if [ $debug -gt 0 ]; then
     echo $cmd
