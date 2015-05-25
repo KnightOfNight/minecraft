@@ -40,7 +40,7 @@ if [ -z "$server" ]; then
 fi
 
 
-if pgrep -f "screen -S mc-$server-maps" > /dev/null; then
+if pgrep -f "SCREEN -S mc-$server-maps" > /dev/null; then
     echo "ERROR: maps already running for server 'greatorex'"
     exit -1
 fi
