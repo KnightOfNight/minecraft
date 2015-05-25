@@ -3,20 +3,30 @@
 
 server=""
 force=""
+typeset -i debug; let debug=0
 
 
 usage () {
     echo "Usage: $(basename $0) -s <server> [-f]"
+    echo "-s <server> server to make maps for"
+    echo "-f          force update of all map tiles"
+    echo "-d          debug mode"
 }
 
 
-while getopts "s:f" opt; do
+while getopts "s:fh" opt; do
     case "$opt" in
         s)
             server="$OPTARG"
             ;;
         f)
             force="-f"
+            ;;
+        d)
+            let debug=1
+            ;;
+        h)
+            usage
             ;;
     esac
 done
@@ -29,7 +39,15 @@ if [ -z "$server" ]; then
 fi
 
 
-echo screen -d -m -S mcserver:$server-maps /usr/local/games/minecraft/bin/make-maps -v -s $server $force
+cmd="screen -d -m -S mcserver:$server-maps /usr/local/games/minecraft/bin/make-maps -v -s $server $force"
+
+if [ $debug -gt 0 ]; then
+    echo $cmd
+else
+    $cmd
+fi
+
 
 exit
+
 
