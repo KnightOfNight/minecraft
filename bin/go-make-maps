@@ -14,7 +14,7 @@ usage () {
 }
 
 
-while getopts "s:fh" opt; do
+while getopts "s:fdh" opt; do
     case "$opt" in
         s)
             server="$OPTARG"
@@ -27,6 +27,7 @@ while getopts "s:fh" opt; do
             ;;
         h)
             usage
+            exit -1
             ;;
     esac
 done
