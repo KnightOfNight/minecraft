@@ -51,7 +51,7 @@ chown -v -R mcraft:mcraft $INSTALL &>>$LOG
 
 # scripts
 log "installing scripts"
-for script in bin/mcctl bin/make-maps bin/make-maps-configs; do
+for script in bin/mcctl bin/go-make-maps bin/make-maps bin/make-maps-configs; do
     if [ ! -s "$script" ]; then
         echo "ERROR: run this script from the git checkout directory"
         exit -1
