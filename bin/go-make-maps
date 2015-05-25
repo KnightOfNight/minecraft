@@ -1,10 +1,30 @@
 #!/bin/bash
 
-server="$1"
+
+server=""
+force=""
+
+
+while getopts "s:f" opt; do
+    case "$opt" in
+        s)
+            server="$OPTARG"
+            ;;
+        f)
+            force="-f"
+            ;;
+    esac
+done
+
 
 if [ -z "$server" ]; then
-    echo "Usage: $(basename $0) <server>"
+    echo "ERROR: no server specified"
+    usage
     exit -1
 fi
 
-echo screen -d -m -S mcserver:$server-maps /usr/local/games/minecraft/bin/make-maps -s $server
+
+echo screen -d -m -S mcserver:$server-maps /usr/local/games/minecraft/bin/make-maps -v -s $server $force
+
+exit
+
