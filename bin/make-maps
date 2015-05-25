@@ -14,16 +14,18 @@ export WWW_DIR="/usr/local/games/minecraft/maps/www"
 export LOG="/usr/local/games/minecraft/logs/maps"
 
 export server=""
-export verbose=""
 export force=""
+export verbose=""
+typeset -i debug; let debug=0; export debug
 
 
 usage () {
     cat << EOUSAGE
 make-maps -s <server> [-f] [-v]
 -s <server>     name the server to map
--f              force render
--v              verbose
+-f              force: render every map tile
+-v              verbose: all log output goes to screen too
+-d              debug: additional output from child processes
 EOUSAGE
 }
 
@@ -33,7 +35,6 @@ log () {
 
     msg="$(date '+%Y-%m-%d %H:%M:%S') $msg"
 
-    echo "#####################################################################################" >> $LOG
     echo "$msg" >> $LOG
 
     if [ "$verbose" = "yes" ]; then
@@ -61,16 +62,18 @@ make_map () {
     fi
 
     log "verifying permissions"
-    find $BUILD_DIR/$map_name -type d | xargs chmod -v 755 &>> $LOG
-    find $BUILD_DIR/$map_name -type f | xargs chmod -v 644 &>> $LOG
+    [ $debug -eq 1 ] && verbose="-v" || verbose=""
+    find $BUILD_DIR/$map_name -type d | xargs chmod $verbose 755 &>> $LOG
+    find $BUILD_DIR/$map_name -type f | xargs chmod $verbose 644 &>> $LOG
 
     log "moving map into place"
-    rsync --verbose --archive --inplace --whole-file --delete-after "$BUILD_DIR/$map_name" "$WWW_DIR/" &>> $LOG
+    [ $debug -eq 1 ] && verbose="--verbose" || verbose=""
+    rsync $verbose --archive --inplace --whole-file --delete-after "$BUILD_DIR/$map_name" "$WWW_DIR/" &>> $LOG
 
 }
 
 
-while getopts "s:fvh" opt; do
+while getopts "s:fvdh" opt; do
     case "$opt" in
         s)
             server="$OPTARG"
@@ -80,6 +83,9 @@ while getopts "s:fvh" opt; do
             ;;
         v)
             verbose="yes"
+            ;;
+        d)
+            let debug=1
             ;;
         h)
             usage
@@ -96,9 +102,11 @@ if [ -z "$server" ]; then
 fi
 
 
-log "make-maps starting - server: $server"
-
+log "#####################################################################################"
+log "make-maps starting"
+log "server: $server"
 log "force render: $( [ -z "$force" ] && echo "off" || echo "on" )"
+log "debug: $( [ $debug -eq 1 ] && echo "on" || echo "off" )"
 
 log "taking server snapshot..."
 if ! mcctl snapshot "$server" &>> $LOG; then
