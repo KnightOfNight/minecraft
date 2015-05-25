@@ -5,6 +5,11 @@ server=""
 force=""
 
 
+usage () {
+    echo "Usage: $(basename $0) -s <server> [-f]"
+}
+
+
 while getopts "s:f" opt; do
     case "$opt" in
         s)
