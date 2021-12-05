@@ -1,0 +1,15 @@
+[Unit]
+Description=Minecraft Server
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/lib/minecraft/bin/go.sh
+PIDFile=/usr/local/lib/minecraft/server/server.pid
+User=minecraft
+KillSignal=SIGTERM
+Restart=no
+TimeoutStopSec=120
+
+[Install]
+WantedBy=default.target
