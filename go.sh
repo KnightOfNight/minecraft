@@ -4,7 +4,7 @@ JAVA="/usr/local/lib/jdk-17.0.1/bin/java"
 
 MEMORY="2G"
 
-JAR="$HOME/lib/paper-1.17.1-388.jar"
+JAR="$HOME/lib/$(cat $HOME/.jar)"
 
 SERVER_DIR="$HOME/server"
 
