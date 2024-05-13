@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JAVA="/usr/local/lib/jdk-17.0.1/bin/java"
+JAVA="/usr/local/lib/jdk-22.0.1/bin/java"
 
 MEMORY="2G"
 

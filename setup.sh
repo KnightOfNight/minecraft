@@ -25,7 +25,7 @@ colorize $black $yellow none "INFO: make directories"
 ssh minecraft@$host "umask 077; mkdir -p server/plugins"
 
 colorize $black $yellow none "INFO: copy main jar"
-scp jars/main/* minecraft@$host:lib/
+scp  jars/main/* minecraft@$host:lib/
 
 colorize $black $yellow none "INFO: copy plugins"
 scp jars/plugins/* minecraft@$host:server/plugins/
